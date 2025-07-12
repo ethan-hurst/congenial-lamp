@@ -228,4 +228,118 @@ export const api = {
     const response = await apiClient.get('/clone/performance/stats');
     return response.data;
   },
+
+  // Collaboration
+  joinCollaborationSession: async (projectId: string) => {
+    const response = await apiClient.post('/collaboration/sessions/join', {
+      project_id: projectId,
+    });
+    return response.data;
+  },
+
+  leaveCollaborationSession: async (projectId: string) => {
+    const response = await apiClient.post(`/collaboration/sessions/${projectId}/leave`);
+    return response.data;
+  },
+
+  sendCollaborationOperation: async (projectId: string, operation: any) => {
+    const response = await apiClient.post(`/collaboration/sessions/${projectId}/operations`, operation);
+    return response.data;
+  },
+
+  updateCollaborationCursor: async (projectId: string, cursor: any) => {
+    const response = await apiClient.post(`/collaboration/sessions/${projectId}/cursor`, cursor);
+    return response.data;
+  },
+
+  getCollaborationState: async (projectId: string) => {
+    const response = await apiClient.get(`/collaboration/sessions/${projectId}/state`);
+    return response.data;
+  },
+
+  getCollaborationFileOperations: async (projectId: string, filePath: string, sinceVersion = 0) => {
+    const response = await apiClient.get(`/collaboration/sessions/${projectId}/files/${filePath}/operations`, {
+      params: { since_version: sinceVersion },
+    });
+    return response.data;
+  },
+
+  getActiveCollaborationSessions: async () => {
+    const response = await apiClient.get('/collaboration/sessions/active');
+    return response.data;
+  },
+
+  // Time-Travel Debugging
+  startDebugSession: async (config: any) => {
+    const response = await apiClient.post('/debug/sessions/start', config);
+    return response.data;
+  },
+
+  endDebugSession: async (sessionId: string) => {
+    const response = await apiClient.post(`/debug/sessions/${sessionId}/end`);
+    return response.data;
+  },
+
+  captureDebugEvent: async (sessionId: string, event: any) => {
+    const response = await apiClient.post(`/debug/sessions/${sessionId}/events`, event);
+    return response.data;
+  },
+
+  travelToTime: async (request: any) => {
+    const response = await apiClient.post('/debug/travel', request);
+    return response.data;
+  },
+
+  stepBackInTime: async (request: any) => {
+    const response = await apiClient.post('/debug/step-back', request);
+    return response.data;
+  },
+
+  stepForwardInTime: async (request: any) => {
+    const response = await apiClient.post('/debug/step-forward', request);
+    return response.data;
+  },
+
+  getDebugTimeline: async (sessionId: string) => {
+    const response = await apiClient.get(`/debug/sessions/${sessionId}/timeline`);
+    return response.data;
+  },
+
+  searchDebugTimeline: async (sessionId: string, query: any, limit = 100) => {
+    const response = await apiClient.post('/debug/search', {
+      session_id: sessionId,
+      query,
+      limit,
+    });
+    return response.data;
+  },
+
+  getVariableChanges: async (sessionId: string, variableName: string, startEvent = 0, endEvent?: number) => {
+    const response = await apiClient.get(`/debug/sessions/${sessionId}/variables/${variableName}/changes`, {
+      params: { start_event: startEvent, end_event: endEvent },
+    });
+    return response.data;
+  },
+
+  getFunctionCalls: async (sessionId: string, functionName: string, startEvent = 0, endEvent?: number) => {
+    const response = await apiClient.get(`/debug/sessions/${sessionId}/functions/${functionName}/calls`, {
+      params: { start_event: startEvent, end_event: endEvent },
+    });
+    return response.data;
+  },
+
+  getActiveDebugSessions: async () => {
+    const response = await apiClient.get('/debug/sessions/active');
+    return response.data;
+  },
+
+  getDebugFeatures: async () => {
+    const response = await apiClient.get('/debug/features');
+    return response.data;
+  },
+
+  deleteDebugSession: async (sessionId: string) => {
+    const response = await apiClient.delete(`/debug/sessions/${sessionId}`);
+    return response.data;
+  },
 };
