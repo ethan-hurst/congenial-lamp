@@ -342,4 +342,114 @@ export const api = {
     const response = await apiClient.delete(`/debug/sessions/${sessionId}`);
     return response.data;
   },
+
+  // Deployment
+  createDeployment: async (config: any) => {
+    const response = await apiClient.post('/deploy/create', config);
+    return response.data;
+  },
+
+  getDeployment: async (deploymentId: string) => {
+    const response = await apiClient.get(`/deploy/deployments/${deploymentId}`);
+    return response.data;
+  },
+
+  getDeploymentLogs: async (deploymentId: string) => {
+    const response = await apiClient.get(`/deploy/deployments/${deploymentId}/logs`);
+    return response.data;
+  },
+
+  cancelDeployment: async (deploymentId: string) => {
+    const response = await apiClient.post(`/deploy/deployments/${deploymentId}/cancel`);
+    return response.data;
+  },
+
+  redeployProject: async (deploymentId: string) => {
+    const response = await apiClient.post(`/deploy/deployments/${deploymentId}/redeploy`);
+    return response.data;
+  },
+
+  getProjectDeployments: async (projectId: string) => {
+    const response = await apiClient.get(`/deploy/projects/${projectId}/deployments`);
+    return response.data;
+  },
+
+  getUserDeployments: async () => {
+    const response = await apiClient.get('/deploy/user/deployments');
+    return response.data;
+  },
+
+  getDeploymentProviders: async (projectType?: string) => {
+    const response = await apiClient.get('/deploy/providers', {
+      params: projectType ? { project_type: projectType } : undefined,
+    });
+    return response.data;
+  },
+
+  quickDeploy: async (projectId: string, provider: string = 'vercel') => {
+    const response = await apiClient.post(`/deploy/quick-deploy/${projectId}`, null, {
+      params: { provider },
+    });
+    return response.data;
+  },
+
+  getDeploymentAnalytics: async (projectId: string) => {
+    const response = await apiClient.get(`/deploy/analytics/${projectId}`);
+    return response.data;
+  },
+
+  getDeploymentHealth: async () => {
+    const response = await apiClient.get('/deploy/health');
+    return response.data;
+  },
+
+  // Performance Monitoring
+  getPerformanceDashboard: async () => {
+    const response = await apiClient.get('/performance/dashboard');
+    return response.data;
+  },
+
+  getPerformanceMetrics: async (params?: any) => {
+    const response = await apiClient.get('/performance/metrics', { params });
+    return response.data;
+  },
+
+  recordPerformanceMetric: async (metric: any) => {
+    const response = await apiClient.post('/performance/metrics/record', metric);
+    return response.data;
+  },
+
+  getSystemHealth: async () => {
+    const response = await apiClient.get('/performance/health');
+    return response.data;
+  },
+
+  getPerformanceInsights: async () => {
+    const response = await apiClient.get('/performance/insights');
+    return response.data;
+  },
+
+  getPerformanceAlerts: async (includeResolved = false) => {
+    const response = await apiClient.get('/performance/alerts', {
+      params: { include_resolved: includeResolved },
+    });
+    return response.data;
+  },
+
+  resolvePerformanceAlert: async (alertId: string) => {
+    const response = await apiClient.post(`/performance/alerts/${alertId}/resolve`);
+    return response.data;
+  },
+
+  getSystemStats: async () => {
+    const response = await apiClient.get('/performance/system/stats');
+    return response.data;
+  },
+
+  exportPerformanceMetrics: async (format = 'json', timeRange = 1440) => {
+    const response = await apiClient.get('/performance/export', {
+      params: { format, time_range: timeRange },
+    });
+    return response.data;
+  },
 };
