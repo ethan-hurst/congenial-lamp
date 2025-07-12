@@ -146,8 +146,86 @@ export const api = {
     return response.data;
   },
 
+  explainCode: async (context: any) => {
+    const response = await apiClient.post('/ai/explain', context);
+    return response.data;
+  },
+
+  reviewCode: async (context: any) => {
+    const response = await apiClient.post('/ai/review', context);
+    return response.data;
+  },
+
+  fixBug: async (context: any) => {
+    const response = await apiClient.post('/ai/fix', context);
+    return response.data;
+  },
+
+  refactorCode: async (context: any) => {
+    const response = await apiClient.post('/ai/refactor', context);
+    return response.data;
+  },
+
+  generateTests: async (context: any) => {
+    const response = await apiClient.post('/ai/generate-tests', context);
+    return response.data;
+  },
+
+  generateDocs: async (context: any) => {
+    const response = await apiClient.post('/ai/generate-docs', context);
+    return response.data;
+  },
+
+  implementFeature: async (context: any) => {
+    const response = await apiClient.post('/ai/implement-feature', context);
+    return response.data;
+  },
+
+  getAIProviders: async () => {
+    const response = await apiClient.get('/ai/providers');
+    return response.data;
+  },
+
   getAIChat: async (messages: any[]) => {
     const response = await apiClient.post('/ai/chat', { messages });
+    return response.data;
+  },
+
+  // Clone
+  cloneProject: async (options: any) => {
+    const response = await apiClient.post('/clone/start', options);
+    return response.data;
+  },
+
+  quickClone: async (projectId: string) => {
+    const response = await apiClient.post(`/clone/quick/${projectId}`);
+    return response.data;
+  },
+
+  getCloneStatus: async (cloneId: string) => {
+    const response = await apiClient.get(`/clone/status/${cloneId}`);
+    return response.data;
+  },
+
+  getCloneHistory: async () => {
+    const response = await apiClient.get('/clone/history');
+    return response.data;
+  },
+
+  getCloneTemplates: async () => {
+    const response = await apiClient.get('/clone/templates');
+    return response.data;
+  },
+
+  cloneTemplate: async (templateId: string, projectName?: string) => {
+    const response = await apiClient.post(`/clone/template/${templateId}`, {
+      project_name: projectName,
+    });
+    return response.data;
+  },
+
+  getCloneStats: async () => {
+    const response = await apiClient.get('/clone/performance/stats');
     return response.data;
   },
 };
