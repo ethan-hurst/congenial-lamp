@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # Base image build
+  base:
+    build:
+      context: ./base
+      dockerfile: Dockerfile
+    image: codeforge/base:latest
+    
+  # Language-specific images
+  python:
+    build:
+      context: ./python
+      dockerfile: Dockerfile
+    image: codeforge/python:latest
+    depends_on:
+      - base
+      
+  node:
+    build:
+      context: ./node
+      dockerfile: Dockerfile
+    image: codeforge/node:latest
+    depends_on:
+      - base
+      
+  go:
+    build:
+      context: ./go
+      dockerfile: Dockerfile
+    image: codeforge/go:latest
+    depends_on:
+      - base
+      
+  rust:
+    build:
+      context: ./rust
+      dockerfile: Dockerfile
+    image: codeforge/rust:latest
+    depends_on:
+      - base
+      
+  # Container registry
+  registry:
+    image: registry:2
+    ports:
+      - "5001:5000"
+    volumes:
+      - registry-data:/var/lib/registry
+    environment:
+      REGISTRY_STORAGE_DELETE_ENABLED: "true"
+      
+  # Container orchestration service
+  orchestrator:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    image: codeforge/orchestrator:latest
+    ports:
+      - "8001:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - container-data:/data
+    environment:
+      DOCKER_HOST: unix:///var/run/docker.sock
+      GVISOR_RUNTIME: runsc
+      CONTAINER_NETWORK: codeforge_network
+    depends_on:
+      - registry
+      
+volumes:
+  registry-data:
+  container-data:
+  
+networks:
+  default:
+    name: codeforge_network
+    driver: bridge
