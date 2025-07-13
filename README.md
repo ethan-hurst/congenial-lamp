@@ -69,12 +69,14 @@
 ### Running Locally (No Database Required!)
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/your-org/codeforge.git
    cd codeforge
    ```
 
 2. **Build Docker images for code execution**
+
    ```bash
    cd codeforge/docker
    chmod +x build_images.sh
@@ -82,6 +84,7 @@
    ```
 
 3. **Start the backend**
+
    ```bash
    cd codeforge/backend
    
@@ -100,6 +103,7 @@
    ```
 
 4. **Start the frontend**
+
    ```bash
    cd codeforge/frontend
    
@@ -111,17 +115,18 @@
    ```
 
 5. **Access CodeForge**
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:8000
-   - API Documentation: http://localhost:8000/docs
+   - Frontend: `http://localhost:5173`
+   - Backend API: `http://localhost:8000`
+   - API Documentation: `http://localhost:8000/docs`
 
 ### Default Demo Account
+
 - Email: `demo@codeforge.dev`
 - Password: `demo123`
 
 ## 🏗️ Architecture
 
-```
+```text
 codeforge/
 ├── frontend/               # React + TypeScript + Vite
 │   ├── src/
