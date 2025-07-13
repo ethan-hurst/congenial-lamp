@@ -1,296 +1,241 @@
-# Context Engineering Template
+# 🚀 CodeForge - The Future of Cloud Development
 
-A comprehensive template for getting started with Context Engineering - the discipline of engineering context for AI coding assistants so they have the information necessary to get the job done end to end.
+**CodeForge** is a revolutionary cloud development platform designed to be "10x better than Replit". It features unlimited projects, zero cold starts, multi-agent AI development assistants, transparent credit-based pricing, and universal IDE support.
 
-> **Context Engineering is 10x better than prompt engineering and 100x better than vibe coding.**
+## 🌟 Key Features
+
+### ✅ Implemented Features
+
+- **🖥️ Web-Based IDE**
+  - Monaco editor with multi-tab support
+  - File tree explorer with drag-and-drop
+  - Integrated terminal with WebSocket communication
+  - Real-time code execution with output streaming
+  - Syntax highlighting for 50+ languages
+
+- **🐳 Container-Based Execution**
+  - Secure Docker containers for each project
+  - Support for Python, Node.js, Go (more coming)
+  - Resource isolation and limits
+  - Hot reload support
+
+- **🤖 AI Integration**
+  - AI chat assistant powered by multiple models
+  - Code completion and suggestions
+  - Basic code generation
+
+- **🔐 Authentication & Security**
+  - JWT-based authentication
+  - OAuth integration (GitHub, Google)
+  - Container security with isolation
+  - Secure WebSocket connections
+
+- **💳 Credits System**
+  - Pay-per-use pricing model
+  - Free tier with $5 monthly credits
+  - Usage tracking and billing
+
+- **📁 File Management**
+  - IndexedDB storage for offline support
+  - File synchronization between frontend and backend
+  - In-memory storage for development (no DB required)
+
+- **🚀 Basic Deployment**
+  - Deploy to cloud providers
+  - Environment variable management
+  - Simple deployment tracking
+
+### 🚧 Features In Progress
+
+- **🗄️ Database Provisioning** - Instant PostgreSQL/MySQL with branching
+- **🤖 Multi-Agent AI System** - Feature Builder, Test Writer, and Refactor agents
+- **🌐 Infrastructure Management** - Custom domains, SSL, CDN, edge deployment
+- **📊 Monitoring & Analytics** - Prometheus, Grafana, distributed tracing
+- **🔄 CI/CD Pipelines** - Visual pipeline builder with caching
+- **🏢 Enterprise Features** - SSO, audit logs, private cloud deployment
+- **⚡ Instant Cloning** - <1 second environment duplication
+- **🛍️ Marketplace** - Templates, bounties, revenue sharing
+- **🔌 IDE Bridge** - VS Code, JetBrains, Vim/Neovim support
+- **🌍 Global Edge Execution** - Deploy to 300+ edge locations
 
 ## 🚀 Quick Start
 
-```bash
-# 1. Clone this template
-git clone https://github.com/coleam00/Context-Engineering-Intro.git
-cd Context-Engineering-Intro
+### Prerequisites
 
-# 2. Set up your project rules (optional - template provided)
-# Edit CLAUDE.md to add your project-specific guidelines
+- Docker installed on your system
+- Node.js 18+ and npm/yarn
+- Python 3.11+ (for backend development)
 
-# 3. Add examples (highly recommended)
-# Place relevant code examples in the examples/ folder
+### Running Locally (No Database Required!)
 
-# 4. Create your initial feature request
-# Edit INITIAL.md with your feature requirements
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-org/codeforge.git
+   cd codeforge
+   ```
 
-# 5. Generate a comprehensive PRP (Product Requirements Prompt)
-# In Claude Code, run:
-/generate-prp INITIAL.md
+2. **Build Docker images for code execution**
+   ```bash
+   cd codeforge/docker
+   chmod +x build_images.sh
+   ./build_images.sh
+   ```
 
-# 6. Execute the PRP to implement your feature
-# In Claude Code, run:
-/execute-prp PRPs/your-feature-name.md
+3. **Start the backend**
+   ```bash
+   cd codeforge/backend
+   
+   # Create virtual environment
+   python -m venv venv_linux
+   source venv_linux/bin/activate  # On Windows: venv_linux\Scripts\activate
+   
+   # Install dependencies
+   pip install -r requirements.txt
+   
+   # Copy development environment variables
+   cp .env.development .env
+   
+   # Run the backend (uses in-memory storage by default)
+   uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+   ```
+
+4. **Start the frontend**
+   ```bash
+   cd codeforge/frontend
+   
+   # Install dependencies
+   npm install
+   
+   # Start development server
+   npm run dev
+   ```
+
+5. **Access CodeForge**
+   - Frontend: http://localhost:5173
+   - Backend API: http://localhost:8000
+   - API Documentation: http://localhost:8000/docs
+
+### Default Demo Account
+- Email: `demo@codeforge.dev`
+- Password: `demo123`
+
+## 🏗️ Architecture
+
+```
+codeforge/
+├── frontend/               # React + TypeScript + Vite
+│   ├── src/
+│   │   ├── components/    # UI components
+│   │   ├── services/      # API and storage services
+│   │   ├── hooks/         # React hooks
+│   │   └── pages/         # Application pages
+│   └── public/
+│
+├── backend/               # FastAPI + Python
+│   ├── src/
+│   │   ├── api/v1/       # API endpoints
+│   │   ├── services/     # Business logic
+│   │   ├── models/       # Data models
+│   │   ├── storage/      # Storage adapters
+│   │   └── auth/         # Authentication
+│   └── tests/
+│
+└── docker/               # Docker configurations
+    └── images/          # Language runtime images
 ```
 
-## 📚 Table of Contents
+## 💻 Development
 
-- [What is Context Engineering?](#what-is-context-engineering)
-- [Template Structure](#template-structure)
-- [Step-by-Step Guide](#step-by-step-guide)
-- [Writing Effective INITIAL.md Files](#writing-effective-initialmd-files)
-- [The PRP Workflow](#the-prp-workflow)
-- [Using Examples Effectively](#using-examples-effectively)
-- [Best Practices](#best-practices)
+### Backend Development
 
-## What is Context Engineering?
-
-Context Engineering represents a paradigm shift from traditional prompt engineering:
-
-### Prompt Engineering vs Context Engineering
-
-**Prompt Engineering:**
-- Focuses on clever wording and specific phrasing
-- Limited to how you phrase a task
-- Like giving someone a sticky note
-
-**Context Engineering:**
-- A complete system for providing comprehensive context
-- Includes documentation, examples, rules, patterns, and validation
-- Like writing a full screenplay with all the details
-
-### Why Context Engineering Matters
-
-1. **Reduces AI Failures**: Most agent failures aren't model failures - they're context failures
-2. **Ensures Consistency**: AI follows your project patterns and conventions
-3. **Enables Complex Features**: AI can handle multi-step implementations with proper context
-4. **Self-Correcting**: Validation loops allow AI to fix its own mistakes
-
-## Template Structure
-
-```
-context-engineering-intro/
-├── .claude/
-│   ├── commands/
-│   │   ├── generate-prp.md    # Generates comprehensive PRPs
-│   │   └── execute-prp.md     # Executes PRPs to implement features
-│   └── settings.local.json    # Claude Code permissions
-├── PRPs/
-│   ├── templates/
-│   │   └── prp_base.md       # Base template for PRPs
-│   └── EXAMPLE_multi_agent_prp.md  # Example of a complete PRP
-├── examples/                  # Your code examples (critical!)
-├── CLAUDE.md                 # Global rules for AI assistant
-├── INITIAL.md               # Template for feature requests
-├── INITIAL_EXAMPLE.md       # Example feature request
-└── README.md                # This file
-```
-
-This template doesn't focus on RAG and tools with context engineering because I have a LOT more in store for that soon. ;)
-
-## Step-by-Step Guide
-
-### 1. Set Up Global Rules (CLAUDE.md)
-
-The `CLAUDE.md` file contains project-wide rules that the AI assistant will follow in every conversation. The template includes:
-
-- **Project awareness**: Reading planning docs, checking tasks
-- **Code structure**: File size limits, module organization
-- **Testing requirements**: Unit test patterns, coverage expectations
-- **Style conventions**: Language preferences, formatting rules
-- **Documentation standards**: Docstring formats, commenting practices
-
-**You can use the provided template as-is or customize it for your project.**
-
-### 2. Create Your Initial Feature Request
-
-Edit `INITIAL.md` to describe what you want to build:
-
-```markdown
-## FEATURE:
-[Describe what you want to build - be specific about functionality and requirements]
-
-## EXAMPLES:
-[List any example files in the examples/ folder and explain how they should be used]
-
-## DOCUMENTATION:
-[Include links to relevant documentation, APIs, or MCP server resources]
-
-## OTHER CONSIDERATIONS:
-[Mention any gotchas, specific requirements, or things AI assistants commonly miss]
-```
-
-**See `INITIAL_EXAMPLE.md` for a complete example.**
-
-### 3. Generate the PRP
-
-PRPs (Product Requirements Prompts) are comprehensive implementation blueprints that include:
-
-- Complete context and documentation
-- Implementation steps with validation
-- Error handling patterns
-- Test requirements
-
-They are similar to PRDs (Product Requirements Documents) but are crafted more specifically to instruct an AI coding assistant.
-
-Run in Claude Code:
-```bash
-/generate-prp INITIAL.md
-```
-
-**Note:** The slash commands are custom commands defined in `.claude/commands/`. You can view their implementation:
-- `.claude/commands/generate-prp.md` - See how it researches and creates PRPs
-- `.claude/commands/execute-prp.md` - See how it implements features from PRPs
-
-The `$ARGUMENTS` variable in these commands receives whatever you pass after the command name (e.g., `INITIAL.md` or `PRPs/your-feature.md`).
-
-This command will:
-1. Read your feature request
-2. Research the codebase for patterns
-3. Search for relevant documentation
-4. Create a comprehensive PRP in `PRPs/your-feature-name.md`
-
-### 4. Execute the PRP
-
-Once generated, execute the PRP to implement your feature:
+The backend uses FastAPI and supports both in-memory storage (for development) and database storage (for production).
 
 ```bash
-/execute-prp PRPs/your-feature-name.md
+# Run tests
+pytest
+
+# Format code
+black .
+
+# Lint code
+ruff check .
 ```
 
-The AI coding assistant will:
-1. Read all context from the PRP
-2. Create a detailed implementation plan
-3. Execute each step with validation
-4. Run tests and fix any issues
-5. Ensure all success criteria are met
+### Frontend Development
 
-## Writing Effective INITIAL.md Files
+The frontend uses React with TypeScript and Vite for fast development.
 
-### Key Sections Explained
+```bash
+# Run tests
+npm test
 
-**FEATURE**: Be specific and comprehensive
-- ❌ "Build a web scraper"
-- ✅ "Build an async web scraper using BeautifulSoup that extracts product data from e-commerce sites, handles rate limiting, and stores results in PostgreSQL"
+# Build for production
+npm run build
 
-**EXAMPLES**: Leverage the examples/ folder
-- Place relevant code patterns in `examples/`
-- Reference specific files and patterns to follow
-- Explain what aspects should be mimicked
-
-**DOCUMENTATION**: Include all relevant resources
-- API documentation URLs
-- Library guides
-- MCP server documentation
-- Database schemas
-
-**OTHER CONSIDERATIONS**: Capture important details
-- Authentication requirements
-- Rate limits or quotas
-- Common pitfalls
-- Performance requirements
-
-## The PRP Workflow
-
-### How /generate-prp Works
-
-The command follows this process:
-
-1. **Research Phase**
-   - Analyzes your codebase for patterns
-   - Searches for similar implementations
-   - Identifies conventions to follow
-
-2. **Documentation Gathering**
-   - Fetches relevant API docs
-   - Includes library documentation
-   - Adds gotchas and quirks
-
-3. **Blueprint Creation**
-   - Creates step-by-step implementation plan
-   - Includes validation gates
-   - Adds test requirements
-
-4. **Quality Check**
-   - Scores confidence level (1-10)
-   - Ensures all context is included
-
-### How /execute-prp Works
-
-1. **Load Context**: Reads the entire PRP
-2. **Plan**: Creates detailed task list using TodoWrite
-3. **Execute**: Implements each component
-4. **Validate**: Runs tests and linting
-5. **Iterate**: Fixes any issues found
-6. **Complete**: Ensures all requirements met
-
-See `PRPs/EXAMPLE_multi_agent_prp.md` for a complete example of what gets generated.
-
-## Using Examples Effectively
-
-The `examples/` folder is **critical** for success. AI coding assistants perform much better when they can see patterns to follow.
-
-### What to Include in Examples
-
-1. **Code Structure Patterns**
-   - How you organize modules
-   - Import conventions
-   - Class/function patterns
-
-2. **Testing Patterns**
-   - Test file structure
-   - Mocking approaches
-   - Assertion styles
-
-3. **Integration Patterns**
-   - API client implementations
-   - Database connections
-   - Authentication flows
-
-4. **CLI Patterns**
-   - Argument parsing
-   - Output formatting
-   - Error handling
-
-### Example Structure
-
-```
-examples/
-├── README.md           # Explains what each example demonstrates
-├── cli.py             # CLI implementation pattern
-├── agent/             # Agent architecture patterns
-│   ├── agent.py      # Agent creation pattern
-│   ├── tools.py      # Tool implementation pattern
-│   └── providers.py  # Multi-provider pattern
-└── tests/            # Testing patterns
-    ├── test_agent.py # Unit test patterns
-    └── conftest.py   # Pytest configuration
+# Type check
+npm run type-check
 ```
 
-## Best Practices
+### Environment Variables
 
-### 1. Be Explicit in INITIAL.md
-- Don't assume the AI knows your preferences
-- Include specific requirements and constraints
-- Reference examples liberally
+See `.env.development` for all available configuration options. Key variables:
 
-### 2. Provide Comprehensive Examples
-- More examples = better implementations
-- Show both what to do AND what not to do
-- Include error handling patterns
+- `USE_MEMORY_STORAGE=true` - Use in-memory storage (no DB required)
+- `JWT_SECRET_KEY` - Secret key for JWT tokens
+- `CORS_ORIGINS` - Allowed CORS origins
 
-### 3. Use Validation Gates
-- PRPs include test commands that must pass
-- AI will iterate until all validations succeed
-- This ensures working code on first try
+## 🤝 Contributing
 
-### 4. Leverage Documentation
-- Include official API docs
-- Add MCP server resources
-- Reference specific documentation sections
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-### 5. Customize CLAUDE.md
-- Add your conventions
-- Include project-specific rules
-- Define coding standards
+### Development Workflow
 
-## Resources
+1. Read `PLANNING.md` for architecture and design decisions
+2. Check `TASK.md` for current tasks and priorities
+3. Create a feature branch
+4. Make your changes following the coding standards
+5. Write tests for new functionality
+6. Submit a pull request
 
-- [Claude Code Documentation](https://docs.anthropic.com/en/docs/claude-code)
-- [Context Engineering Best Practices](https://www.philschmid.de/context-engineering)
+## 📊 Project Status
+
+### Current Progress: ~25% Complete
+
+**✅ Core Infrastructure** - Basic IDE, file system, authentication
+**🚧 In Progress** - Database provisioning, multi-agent AI, monitoring
+**📋 Planned** - Enterprise features, marketplace, global edge deployment
+
+### Roadmap
+
+**Phase 1 (Current)** - MVP with core IDE functionality
+**Phase 2** - Database provisioning, advanced AI, monitoring
+**Phase 3** - Enterprise features, marketplace
+**Phase 4** - Global edge execution, advanced optimizations
+
+## 🔒 Security
+
+- All code execution happens in isolated Docker containers
+- JWT-based authentication with secure token handling
+- Container security with resource limits and isolation
+- Planned: SOC2 compliance, end-to-end encryption
+
+## 💰 Pricing Model
+
+- **Free Tier**: $5 in credits every month
+- **Pay-As-You-Go**: Only pay for actual compute used
+- **Earn Credits**: Contribute to templates, fix bugs, help others
+- **Transparent Pricing**: See exactly what you're paying for
+
+## 📄 License
+
+This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
+
+## 🙏 Acknowledgments
+
+- Inspired by the need for a better cloud development experience
+- Built with modern technologies and best practices
+- Designed to be developer-first and community-driven
+
+---
+
+**Note**: This is an ambitious project in active development. Many features are still being implemented. See the [project board](https://github.com/your-org/codeforge/projects) for current status and roadmap.
