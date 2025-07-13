@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 import uvicorn
 
 from .config.settings import settings
-from .api.v1 import auth, containers, ai, clone, collaboration, debug, deployment, performance, projects
+from .api.v1 import auth, containers, ai, clone, collaboration, debug, deployment, performance, projects, websocket
 
 # Create FastAPI app
 app = FastAPI(
@@ -46,6 +46,9 @@ app.include_router(deployment.router, prefix="/api/v1")
 app.include_router(performance.router, prefix="/api/v1")
 app.include_router(projects.router, prefix="/api/v1")
 
+# Include WebSocket routes
+app.include_router(websocket.router, prefix="/api/v1/ws")
+
 # Health check endpoint
 @app.get("/health")
 async def health_check():
@@ -74,7 +77,11 @@ async def startup_event():
     print(f"Starting CodeForge API in {settings.ENVIRONMENT} mode")
     
     # Initialize services
-    # TODO: Initialize database connection pool
+    from .storage.storage_adapter import init_storage
+    init_storage()
+    print("Storage initialized")
+    
+    # TODO: Initialize database connection pool (when using real DB)
     # TODO: Start background tasks
 
 # Shutdown event

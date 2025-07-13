@@ -15,7 +15,8 @@ from urllib.parse import urlencode
 
 from ..config.settings import settings
 from ..models.user import User
-from ..services.credits_service import CreditsService
+from ..services.credits_service_memory import CreditsService
+from ..storage.storage_adapter import get_storage
 
 
 class UserRegistration(BaseModel):
@@ -180,6 +181,11 @@ class AuthService:
             
         except jwt.InvalidTokenError:
             return None
+            
+    async def verify_websocket_token(self, token: str) -> Optional[User]:
+        """Verify JWT token for WebSocket connections"""
+        # WebSocket connections use the same token verification
+        return await self.verify_token(token)
             
     async def oauth_login(self, provider: str, code: str) -> Tuple[User, TokenPair]:
         """Handle OAuth login"""
@@ -464,28 +470,46 @@ class AuthService:
         
     async def _user_exists(self, email: str, username: str) -> bool:
         """Check if user exists by email or username"""
-        # TODO: Implement database lookup
-        return False
+        storage = get_storage()
+        user_by_email = await storage.get_user_by_email(email)
+        user_by_username = await storage.get_user_by_username(username)
+        return user_by_email is not None or user_by_username is not None
         
     async def _username_exists(self, username: str) -> bool:
         """Check if username exists"""
-        # TODO: Implement database lookup
-        return False
+        storage = get_storage()
+        user = await storage.get_user_by_username(username)
+        return user is not None
         
     async def _get_user_by_email(self, email: str) -> Optional[User]:
         """Get user by email"""
-        # TODO: Implement database lookup
+        storage = get_storage()
+        user_data = await storage.get_user_by_email(email)
+        if user_data:
+            return User(**user_data)
         return None
         
     async def _get_user_by_id(self, user_id: str) -> Optional[User]:
         """Get user by ID"""
-        # TODO: Implement database lookup
+        storage = get_storage()
+        user_data = await storage.get_user_by_id(user_id)
+        if user_data:
+            return User(**user_data)
         return None
         
     async def _save_user(self, user: User):
         """Save user to database"""
-        # TODO: Implement database save
-        pass
+        storage = get_storage()
+        user_data = user.dict()
+        
+        # Check if user exists
+        existing = await storage.get_user_by_id(user.id)
+        if existing:
+            # Update existing user
+            await storage.update_user(user.id, user_data)
+        else:
+            # Create new user
+            await storage.create_user(user_data)
         
     async def _send_verification_email(self, user: User):
         """Send email verification"""

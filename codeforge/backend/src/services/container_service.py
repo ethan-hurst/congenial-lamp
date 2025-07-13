@@ -187,6 +187,18 @@ class ContainerService:
         
     def _get_image_for_language(self, language: str, version: str) -> str:
         """Get Docker image for language/runtime"""
+        # Map language to runtime versions
+        version_map = {
+            "python": "3.11",
+            "javascript": "20",
+            "typescript": "20",
+            "go": "1.21"
+        }
+        
+        # Use mapped version if no specific version provided
+        if not version or version == "latest":
+            version = version_map.get(language, "latest")
+            
         images = {
             "python": f"codeforge/python:{version}",
             "javascript": f"codeforge/node:{version}",
