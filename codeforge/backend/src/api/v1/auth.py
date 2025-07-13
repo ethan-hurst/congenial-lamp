@@ -3,18 +3,19 @@ Authentication API endpoints for CodeForge
 """
 import secrets
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Response, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
+from sqlalchemy.orm import Session
 
-from ...auth.auth_service import AuthService, UserRegistration, UserLogin, TokenPair
+from ...services.auth_service import AuthService
 from ...auth.dependencies import get_current_user
 from ...models.user import User
+from ...database.connection import get_database_session
 
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 security = HTTPBearer()
-auth_service = AuthService()
 
 
 class RegisterRequest(BaseModel):
@@ -22,7 +23,6 @@ class RegisterRequest(BaseModel):
     username: str
     password: str
     full_name: Optional[str] = None
-    invite_code: Optional[str] = None
 
 
 class LoginRequest(BaseModel):
@@ -35,8 +35,11 @@ class RefreshRequest(BaseModel):
 
 
 class AuthResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str
+    expires_in: int
     user: dict
-    tokens: TokenPair
 
 
 class OAuthUrlResponse(BaseModel):
@@ -44,33 +47,31 @@ class OAuthUrlResponse(BaseModel):
     state: str
 
 
+class UpdateProfileRequest(BaseModel):
+    full_name: Optional[str] = None
+    bio: Optional[str] = None
+    location: Optional[str] = None
+    website: Optional[str] = None
+
+
 @router.post("/register", response_model=AuthResponse)
-async def register(request: RegisterRequest, http_request: Request):
+async def register(request: RegisterRequest):
     """Register a new user account"""
     try:
-        registration = UserRegistration(
+        auth_service = AuthService()
+        
+        # Create user
+        user = auth_service.create_user(
             email=request.email,
             username=request.username,
             password=request.password,
-            full_name=request.full_name,
-            invite_code=request.invite_code
+            full_name=request.full_name
         )
         
-        user, tokens = await auth_service.register_user(registration)
+        # Generate tokens
+        tokens = auth_service.create_access_token_for_user(user)
         
-        return AuthResponse(
-            user={
-                "id": user.id,
-                "email": user.email,
-                "username": user.username,
-                "full_name": user.full_name,
-                "avatar_url": user.avatar_url,
-                "subscription_tier": user.subscription_tier,
-                "is_verified": user.is_verified,
-                "created_at": user.created_at.isoformat()
-            },
-            tokens=tokens
-        )
+        return AuthResponse(**tokens)
         
     except ValueError as e:
         raise HTTPException(
@@ -85,38 +86,27 @@ async def register(request: RegisterRequest, http_request: Request):
 
 
 @router.post("/login", response_model=AuthResponse)
-async def login(request: LoginRequest, http_request: Request):
+async def login(request: LoginRequest):
     """Authenticate user login"""
     try:
-        # Get client IP
-        client_ip = http_request.client.host if http_request.client else "unknown"
+        auth_service = AuthService()
         
-        login_data = UserLogin(
-            email=request.email,
-            password=request.password
-        )
+        # Authenticate user
+        user = auth_service.authenticate_user(request.email, request.password)
         
-        user, tokens = await auth_service.login_user(login_data, client_ip)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password"
+            )
         
-        return AuthResponse(
-            user={
-                "id": user.id,
-                "email": user.email,
-                "username": user.username,
-                "full_name": user.full_name,
-                "avatar_url": user.avatar_url,
-                "subscription_tier": user.subscription_tier,
-                "is_verified": user.is_verified,
-                "last_login": user.last_login.isoformat() if user.last_login else None
-            },
-            tokens=tokens
-        )
+        # Generate tokens
+        tokens = auth_service.create_access_token_for_user(user)
         
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e)
-        )
+        return AuthResponse(**tokens)
+        
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -124,11 +114,12 @@ async def login(request: LoginRequest, http_request: Request):
         )
 
 
-@router.post("/refresh", response_model=TokenPair)
+@router.post("/refresh")
 async def refresh_tokens(request: RefreshRequest):
     """Refresh access token using refresh token"""
     try:
-        tokens = await auth_service.refresh_token(request.refresh_token)
+        auth_service = AuthService()
+        tokens = auth_service.refresh_access_token(request.refresh_token)
         return tokens
         
     except ValueError as e:
@@ -165,31 +156,86 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
         "email": current_user.email,
         "username": current_user.username,
         "full_name": current_user.full_name,
+        "bio": current_user.bio,
+        "location": current_user.location,
+        "website": current_user.website,
         "avatar_url": current_user.avatar_url,
         "subscription_tier": current_user.subscription_tier,
         "is_verified": current_user.is_verified,
+        "is_student": current_user.is_student,
+        "is_nonprofit": current_user.is_nonprofit,
         "projects_created": current_user.projects_created,
         "contributions_count": current_user.contributions_count,
+        "helpful_answers_count": current_user.helpful_answers_count,
         "created_at": current_user.created_at.isoformat(),
-        "last_login": current_user.last_login.isoformat() if current_user.last_login else None
+        "last_login": current_user.last_login.isoformat() if current_user.last_login else None,
+        "preferences": current_user.preferences,
+        "editor_settings": current_user.editor_settings
     }
 
 
+@router.put("/me")
+async def update_profile(
+    request: UpdateProfileRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Update user profile"""
+    try:
+        auth_service = AuthService()
+        
+        updated_user = auth_service.update_user_profile(
+            user_id=current_user.id,
+            full_name=request.full_name,
+            bio=request.bio,
+            location=request.location,
+            website=request.website
+        )
+        
+        if not updated_user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        return {
+            "id": updated_user.id,
+            "email": updated_user.email,
+            "username": updated_user.username,
+            "full_name": updated_user.full_name,
+            "bio": updated_user.bio,
+            "location": updated_user.location,
+            "website": updated_user.website,
+            "avatar_url": updated_user.avatar_url,
+            "updated_at": updated_user.updated_at.isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update profile"
+        )
+
+
 @router.get("/oauth/{provider}/url", response_model=OAuthUrlResponse)
-async def get_oauth_url(provider: str):
+async def get_oauth_url(
+    provider: str,
+    redirect_uri: str = Query(..., description="OAuth redirect URI")
+):
     """Get OAuth authorization URL"""
-    if provider not in ["github", "google", "gitlab"]:
+    if provider not in ["github", "google"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Unsupported OAuth provider"
         )
         
     try:
+        auth_service = AuthService()
+        
         # Generate state for CSRF protection
         state = secrets.token_urlsafe(32)
         
         # Get authorization URL
-        auth_url = auth_service.get_oauth_redirect_url(provider, state)
+        auth_url = await auth_service.get_oauth_authorization_url(provider, redirect_uri, state)
         
         return OAuthUrlResponse(auth_url=auth_url, state=state)
         
@@ -203,36 +249,25 @@ async def get_oauth_url(provider: str):
 @router.post("/oauth/{provider}/callback", response_model=AuthResponse)
 async def oauth_callback(
     provider: str,
-    code: str,
-    state: Optional[str] = None
+    code: str = Query(..., description="OAuth authorization code"),
+    redirect_uri: str = Query(..., description="OAuth redirect URI"),
+    state: Optional[str] = Query(None, description="CSRF state parameter")
 ):
     """Handle OAuth callback"""
-    if provider not in ["github", "google", "gitlab"]:
+    if provider not in ["github", "google"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Unsupported OAuth provider"
         )
         
     try:
+        auth_service = AuthService()
+        
         # TODO: Verify state parameter for CSRF protection
         
-        user, tokens = await auth_service.oauth_login(provider, code)
+        tokens = await auth_service.handle_oauth_callback(provider, code, redirect_uri)
         
-        return AuthResponse(
-            user={
-                "id": user.id,
-                "email": user.email,
-                "username": user.username,
-                "full_name": user.full_name,
-                "avatar_url": user.avatar_url,
-                "subscription_tier": user.subscription_tier,
-                "is_verified": user.is_verified,
-                "github_id": user.github_id,
-                "google_id": user.google_id,
-                "created_at": user.created_at.isoformat()
-            },
-            tokens=tokens
-        )
+        return AuthResponse(**tokens)
         
     except ValueError as e:
         raise HTTPException(
@@ -248,16 +283,30 @@ async def oauth_callback(
 
 @router.post("/verify-email")
 async def verify_email(
-    token: str,
+    token: str = Query(..., description="Email verification token"),
     current_user: User = Depends(get_current_user)
 ):
     """Verify user email address"""
-    # TODO: Implement email verification
-    # 1. Verify token
-    # 2. Mark user as verified
-    # 3. Update database
-    
-    return {"message": "Email verified successfully"}
+    try:
+        auth_service = AuthService()
+        
+        success = auth_service.verify_email(current_user.id, token)
+        
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid verification token"
+            )
+        
+        return {"message": "Email verified successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Email verification failed"
+        )
 
 
 @router.post("/resend-verification")
@@ -270,8 +319,13 @@ async def resend_verification(current_user: User = Depends(get_current_user)):
         )
         
     try:
-        await auth_service._send_verification_email(current_user)
-        return {"message": "Verification email sent"}
+        auth_service = AuthService()
+        verification_token = auth_service.send_verification_email(current_user)
+        
+        return {
+            "message": "Verification email sent",
+            "token": verification_token  # In production, don't return this
+        }
         
     except Exception as e:
         raise HTTPException(
@@ -284,12 +338,14 @@ async def resend_verification(current_user: User = Depends(get_current_user)):
 async def forgot_password(email: EmailStr):
     """Send password reset email"""
     try:
-        # TODO: Implement password reset
-        # 1. Generate reset token
-        # 2. Save token to database
-        # 3. Send reset email
+        auth_service = AuthService()
+        reset_token = auth_service.send_password_reset_email(email)
         
-        return {"message": "Password reset email sent if account exists"}
+        # Always return success for security (don't leak if email exists)
+        return {
+            "message": "Password reset email sent if account exists",
+            "token": reset_token if reset_token else None  # In production, don't return this
+        }
         
     except Exception as e:
         raise HTTPException(
@@ -299,24 +355,53 @@ async def forgot_password(email: EmailStr):
 
 
 @router.post("/reset-password")
-async def reset_password(token: str, new_password: str):
+async def reset_password(
+    token: str = Query(..., description="Password reset token"),
+    new_password: str = Query(..., description="New password")
+):
     """Reset password using reset token"""
     try:
-        # TODO: Implement password reset
-        # 1. Verify reset token
-        # 2. Validate new password
-        # 3. Update user password
-        # 4. Invalidate reset token
+        auth_service = AuthService()
+        
+        success = auth_service.reset_password(token, new_password)
+        
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired reset token"
+            )
         
         return {"message": "Password reset successfully"}
         
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Password reset failed"
+        )
+
+
+@router.delete("/account")
+async def deactivate_account(current_user: User = Depends(get_current_user)):
+    """Deactivate user account"""
+    try:
+        auth_service = AuthService()
+        
+        success = auth_service.deactivate_user(current_user.id)
+        
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to deactivate account"
+            )
+        
+        return {"message": "Account deactivated successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Account deactivation failed"
         )

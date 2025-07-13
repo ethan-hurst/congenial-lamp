@@ -103,6 +103,7 @@ class Settings(BaseSettings):
     # Storage
     STORAGE_TYPE: str = Field(default="local", env="STORAGE_TYPE")  # local, s3, gcs, azure
     STORAGE_PATH: str = Field(default="/data/codeforge", env="STORAGE_PATH")
+    FILE_STORAGE_PATH: str = Field(default="/data/codeforge/files", env="FILE_STORAGE_PATH")
     S3_BUCKET: Optional[str] = Field(default=None, env="S3_BUCKET")
     GCS_BUCKET: Optional[str] = Field(default=None, env="GCS_BUCKET")
     

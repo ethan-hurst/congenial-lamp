@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 import uvicorn
 
 from .config.settings import settings
-from .api.v1 import auth, containers, ai, clone, collaboration, debug, deployment, performance
+from .api.v1 import auth, containers, ai, clone, collaboration, debug, deployment, performance, projects
 
 # Create FastAPI app
 app = FastAPI(
@@ -44,6 +44,7 @@ app.include_router(collaboration.router, prefix="/api/v1")
 app.include_router(debug.router, prefix="/api/v1")
 app.include_router(deployment.router, prefix="/api/v1")
 app.include_router(performance.router, prefix="/api/v1")
+app.include_router(projects.router, prefix="/api/v1")
 
 # Health check endpoint
 @app.get("/health")

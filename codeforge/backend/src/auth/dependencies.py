@@ -6,9 +6,11 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
+from sqlalchemy.orm import Session
 
 from ..config.settings import settings
 from ..models.user import User
+from ..database.connection import get_database_session
 
 
 security = HTTPBearer()
@@ -27,7 +29,10 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_database_session)
+) -> User:
     """Get current authenticated user from JWT token"""
     token = credentials.credentials
     
@@ -45,15 +50,8 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     except JWTError:
         raise credentials_exception
     
-    # TODO: Get user from database
-    # For now, return mock user
-    user = User(
-        id=user_id,
-        email=f"{user_id}@codeforge.dev",
-        username=user_id,
-        hashed_password="",
-        is_active=True
-    )
+    # Get user from database
+    user = db.query(User).filter(User.id == user_id, User.is_active == True).first()
     
     if user is None:
         raise credentials_exception
