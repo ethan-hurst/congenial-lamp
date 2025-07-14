@@ -219,7 +219,7 @@ def start_services(python_path, frontend_available=True):
 
         print("\n✅ CodeForge is starting up!")
         if frontend_proc:
-            print(f"🌐 Frontend: https://{repl_slug}.{repl_owner}.repl.co}")
+            print(f"🌐 Frontend: https://{repl_slug}.{repl_owner}.repl.co")
         print(f"🔧 Backend API: https://{repl_slug}.{repl_owner}.repl.co/api")
         print(f"📚 API Docs: https://{repl_slug}.{repl_owner}.repl.co/docs")
         print("\n📧 Default Login:")
