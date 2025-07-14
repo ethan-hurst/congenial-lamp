@@ -4,6 +4,14 @@
 
 echo "🚀 Starting CodeForge on Replit..."
 
+# Fix any git issues first
+if [ -d ".git" ]; then
+    echo "🔧 Checking git status..."
+    git config --global --add safe.directory /home/runner/$REPL_SLUG 2>/dev/null || true
+    git config --global user.email "replit@codeforge.dev" 2>/dev/null || true
+    git config --global user.name "Replit User" 2>/dev/null || true
+fi
+
 # Function to check if a command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
