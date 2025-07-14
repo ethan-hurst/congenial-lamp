@@ -3,7 +3,7 @@ User and team models for CodeForge
 """
 from datetime import datetime
 from typing import Optional, List
-from sqlalchemy import Column, String, Boolean, DateTime, JSON, Integer, Index
+from sqlalchemy import Column, String, Boolean, DateTime, JSON, Integer, Index, ForeignKey
 from sqlalchemy.orm import relationship
 from ..database.connection import Base
 
