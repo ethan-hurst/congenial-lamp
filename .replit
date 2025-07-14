@@ -36,3 +36,7 @@ args = "cd codeforge/backend && pip install -r requirements.txt && python -m uvi
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd codeforge/frontend && npm install && npm run dev -- --host 0.0.0.0 --port 5000"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
