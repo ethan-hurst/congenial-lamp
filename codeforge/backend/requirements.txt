@@ -31,8 +31,8 @@ python-socketio==5.10.0
 websockets==12.0
 
 # Cloud Providers
-boto3==1.34.0  # AWS
-aioboto3==12.1.0  # AWS async
+boto3==1.33.13  # AWS
+aiobotocore==2.8.0  # AWS async
 google-cloud-storage==2.13.0  # GCP
 azure-storage-blob==12.19.0  # Azure
 
