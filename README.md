@@ -45,7 +45,7 @@
   - Environment variable management
   - Simple deployment tracking
 
-- **🗄️ Database Provisioning & Branching** (NEW!)
+- **🗄️ Database Provisioning & Branching**
   - One-click PostgreSQL/MySQL provisioning
   - Git-like branching for databases with copy-on-write
   - Visual branch management and merging
@@ -54,9 +54,22 @@
   - Connection string management
   - Real-time database metrics
 
+- **🤖 Multi-Agent AI Development System** (NEW!)
+  - **Agent Orchestrator** for coordinating multiple AI agents
+  - **Feature Builder Agent** for complete feature implementation
+  - **Test Writer Agent** for comprehensive test generation
+  - **Refactor Agent** for code quality improvement
+  - **Bug Fixer Agent** for automated bug detection and fixing
+  - **Code Reviewer Agent** for security and best practices review
+  - **Documentation Agent** for automated documentation generation
+  - **Context Builder** for intelligent code understanding
+  - **Workflow Management** for complex multi-step development tasks
+  - Real-time task progress tracking with Server-Sent Events
+  - Test coverage visualization with heatmaps
+  - Technology stack detection and constraint handling
+
 ### 🚧 Features In Progress
 
-- **🤖 Multi-Agent AI System** - Feature Builder, Test Writer, and Refactor agents
 - **🌐 Infrastructure Management** - Custom domains, SSL, CDN, edge deployment
 - **📊 Monitoring & Analytics** - Prometheus, Grafana, distributed tracing
 - **🔄 CI/CD Pipelines** - Visual pipeline builder with caching
@@ -198,6 +211,18 @@ ruff check .
 - `GET /api/v1/databases/{id}/migrations` - Get migration history
 - `POST /api/v1/databases/{id}/migrations/{version}/rollback` - Rollback migration
 
+#### AI Agents
+- `POST /api/v1/ai/agents/feature` - Create a feature using Feature Builder agent
+- `POST /api/v1/ai/agents/test` - Generate tests using Test Writer agent
+- `POST /api/v1/ai/agents/refactor` - Refactor code using Refactor agent
+- `POST /api/v1/ai/agents/bugfix` - Fix bugs using Bug Fixer agent
+- `POST /api/v1/ai/agents/workflow` - Execute a complete development workflow
+- `GET /api/v1/ai/agents/tasks` - List user's AI agent tasks
+- `GET /api/v1/ai/agents/tasks/{id}` - Get task status and results
+- `GET /api/v1/ai/agents/tasks/{id}/stream` - Stream task progress (SSE)
+- `DELETE /api/v1/ai/agents/tasks/{id}` - Cancel a running task
+- `GET /api/v1/ai/agents/capabilities` - Get all agent capabilities
+
 ### Frontend Development
 
 The frontend uses React with TypeScript and Vite for fast development.
@@ -236,16 +261,16 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 
 ## 📊 Project Status
 
-### Current Progress: ~25% Complete
+### Current Progress: ~40% Complete
 
-**✅ Core Infrastructure** - Basic IDE, file system, authentication
-**🚧 In Progress** - Database provisioning, multi-agent AI, monitoring
+**✅ Core Infrastructure** - Basic IDE, file system, authentication, database provisioning, multi-agent AI
+**🚧 In Progress** - Monitoring & observability, CI/CD pipelines
 **📋 Planned** - Enterprise features, marketplace, global edge deployment
 
 ### Roadmap
 
-**Phase 1 (Current)** - MVP with core IDE functionality
-**Phase 2** - Database provisioning, advanced AI, monitoring
+**Phase 1 (Completed)** - MVP with core IDE functionality, database provisioning, multi-agent AI
+**Phase 2 (Current)** - Monitoring & observability, CI/CD pipelines, infrastructure management
 **Phase 3** - Enterprise features, marketplace
 **Phase 4** - Global edge execution, advanced optimizations
 
