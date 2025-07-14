@@ -19,3 +19,15 @@ externalPort = 3000
 
 [gitHubImport]
 requiredFiles = [".replit", "replit.nix"]
+
+[workflows]
+runButton = "Start CodeForge"
+
+[[workflows.workflow]]
+name = "Start CodeForge"
+author = 40017536
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 run_replit.py"
