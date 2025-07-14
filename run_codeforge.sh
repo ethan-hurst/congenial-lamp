@@ -6,10 +6,24 @@ echo "🚀 Starting CodeForge on Replit..."
 
 # Fix any git issues first
 if [ -d ".git" ]; then
-    echo "🔧 Checking git status..."
+    echo "🔧 Configuring git..."
+    # Configure safe directories
     git config --global --add safe.directory /home/runner/$REPL_SLUG 2>/dev/null || true
+    git config --global --add safe.directory /workspaces/congenial-lamp 2>/dev/null || true
+    git config --global --add safe.directory . 2>/dev/null || true
+    
+    # Configure user
     git config --global user.email "replit@codeforge.dev" 2>/dev/null || true
     git config --global user.name "Replit User" 2>/dev/null || true
+    
+    # Configure pull strategy - this fixes the divergent branches error
+    git config --global pull.rebase false 2>/dev/null || true
+    git config pull.rebase false 2>/dev/null || true
+    
+    # Set default branch
+    git config --global init.defaultBranch main 2>/dev/null || true
+    
+    echo "✅ Git configuration complete"
 fi
 
 # Function to check if a command exists

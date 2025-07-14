@@ -1,0 +1,15 @@
+[user]
+    email = replit@codeforge.dev
+    name = Replit User
+
+[pull]
+    rebase = false
+
+[init]
+    defaultBranch = main
+
+[safe]
+    directory = *
+
+[core]
+    autocrlf = input

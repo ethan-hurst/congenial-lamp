@@ -25,9 +25,22 @@ def setup_git():
     """Configure git to avoid errors in Replit"""
     print("🔧 Configuring git...")
     repl_slug = os.environ.get('REPL_SLUG', 'codeforge')
+    
+    # Configure safe directory
     run_command(f'git config --global --add safe.directory /home/runner/{repl_slug}', check=False)
+    run_command(f'git config --global --add safe.directory /workspaces/congenial-lamp', check=False)
+    run_command(f'git config --global --add safe.directory .', check=False)
+    
+    # Configure user
     run_command('git config --global user.email "replit@codeforge.dev"', check=False)
     run_command('git config --global user.name "Replit User"', check=False)
+    
+    # Configure pull strategy to avoid divergent branches error
+    run_command('git config --global pull.rebase false', check=False)
+    run_command('git config pull.rebase false', check=False)
+    
+    # Set default branch name
+    run_command('git config --global init.defaultBranch main', check=False)
 
 def setup_python_env():
     """Setup Python virtual environment"""
