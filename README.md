@@ -45,9 +45,17 @@
   - Environment variable management
   - Simple deployment tracking
 
+- **🗄️ Database Provisioning & Branching** (NEW!)
+  - One-click PostgreSQL/MySQL provisioning
+  - Git-like branching for databases with copy-on-write
+  - Visual branch management and merging
+  - Automated backups and restore
+  - Migration management with rollback support
+  - Connection string management
+  - Real-time database metrics
+
 ### 🚧 Features In Progress
 
-- **🗄️ Database Provisioning** - Instant PostgreSQL/MySQL with branching
 - **🤖 Multi-Agent AI System** - Feature Builder, Test Writer, and Refactor agents
 - **🌐 Infrastructure Management** - Custom domains, SSL, CDN, edge deployment
 - **📊 Monitoring & Analytics** - Prometheus, Grafana, distributed tracing
@@ -165,6 +173,30 @@ black .
 # Lint code
 ruff check .
 ```
+
+### API Endpoints
+
+#### Database Management
+- `POST /api/v1/databases` - Provision a new database
+- `GET /api/v1/databases` - List all databases
+- `DELETE /api/v1/databases/{id}` - Delete a database
+- `GET /api/v1/databases/{id}/connection-string` - Get connection string
+- `GET /api/v1/databases/{id}/metrics` - Get database metrics
+
+#### Database Branching
+- `POST /api/v1/databases/{id}/branches` - Create a new branch
+- `GET /api/v1/databases/{id}/branches` - List all branches
+- `DELETE /api/v1/databases/{id}/branches/{name}` - Delete a branch
+- `POST /api/v1/databases/{id}/branches/merge` - Merge branches
+- `GET /api/v1/databases/{id}/branches/diff` - Compare branches
+
+#### Database Backups & Migrations
+- `POST /api/v1/databases/{id}/backup` - Create a backup
+- `GET /api/v1/databases/{id}/backup` - List backups
+- `POST /api/v1/databases/{id}/restore` - Restore from backup
+- `POST /api/v1/databases/{id}/migrations` - Apply migration
+- `GET /api/v1/databases/{id}/migrations` - Get migration history
+- `POST /api/v1/databases/{id}/migrations/{version}/rollback` - Rollback migration
 
 ### Frontend Development
 
