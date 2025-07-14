@@ -17,6 +17,7 @@ from ...services.infrastructure.ssl_service import SSLService
 from ...services.infrastructure.cdn_service import CDNService
 from ...services.infrastructure.load_balancer_service import LoadBalancerService
 from ...services.infrastructure.edge_service import EdgeDeploymentService
+from ...services.infrastructure.cost_analytics import get_cost_analytics
 from ...services.credits_service import CreditsService
 
 
@@ -829,6 +830,90 @@ async def get_infrastructure_overview(
                 "items": edge_deployments[:5]
             }
         }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Cost Analytics Endpoints
+
+@router.get("/costs/summary")
+async def get_cost_summary(
+    project_id: str,
+    days: int = Query(30, ge=1, le=365),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_database_session)
+):
+    """Get comprehensive cost summary for infrastructure"""
+    try:
+        cost_analytics = get_cost_analytics(db)
+        summary = await cost_analytics.get_project_cost_summary(
+            project_id=project_id,
+            user_id=current_user.id,
+            days=days
+        )
+        return summary
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/costs/trends")
+async def get_cost_trends(
+    project_id: str,
+    days: int = Query(30, ge=7, le=90),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_database_session)
+):
+    """Get cost trends over time"""
+    try:
+        cost_analytics = get_cost_analytics(db)
+        trends = await cost_analytics.get_cost_trends(
+            project_id=project_id,
+            user_id=current_user.id,
+            days=days
+        )
+        return trends
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/costs/optimization")
+async def get_cost_optimization_suggestions(
+    project_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_database_session)
+):
+    """Get cost optimization suggestions"""
+    try:
+        cost_analytics = get_cost_analytics(db)
+        suggestions = await cost_analytics.get_cost_optimization_suggestions(
+            project_id=project_id,
+            user_id=current_user.id
+        )
+        return {"suggestions": suggestions}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/costs/alerts")
+async def get_cost_alerts(
+    project_id: str,
+    budget_limit: Optional[float] = Query(None, ge=0),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_database_session)
+):
+    """Get cost alerts and budget notifications"""
+    try:
+        cost_analytics = get_cost_analytics(db)
+        alerts = await cost_analytics.get_cost_alerts(
+            project_id=project_id,
+            user_id=current_user.id,
+            budget_limit=budget_limit
+        )
+        return {"alerts": alerts}
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

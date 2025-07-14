@@ -18,6 +18,7 @@ from ...models.ai_agent import (
 )
 from ...services.ai import AgentOrchestrator, Constraint, Workflow
 from ...services.ai.context_builder import ContextBuilder, ContextScope
+from ...services.ai.metrics import get_agent_analytics, get_realtime_metrics
 
 
 router = APIRouter(prefix="/ai/agents", tags=["ai-agents"])
@@ -789,3 +790,128 @@ async def get_agent_capabilities():
             }
         }
     }
+
+
+# Analytics and Metrics Endpoints
+
+@router.get("/metrics/performance")
+async def get_performance_metrics(
+    agent_type: Optional[str] = Query(None),
+    days: int = Query(30, ge=1, le=365),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_database_session)
+):
+    """Get agent performance metrics"""
+    try:
+        analytics = get_agent_analytics(db)
+        
+        agent_type_enum = None
+        if agent_type:
+            try:
+                agent_type_enum = AgentType(agent_type)
+            except ValueError:
+                raise HTTPException(status_code=400, detail=f"Invalid agent type: {agent_type}")
+        
+        metrics = await analytics.get_agent_performance_summary(
+            agent_type=agent_type_enum,
+            time_range_days=days,
+            user_id=current_user.id
+        )
+        
+        return metrics
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/metrics/usage")
+async def get_user_usage_metrics(
+    days: int = Query(30, ge=1, le=365),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_database_session)
+):
+    """Get user's agent usage metrics"""
+    try:
+        analytics = get_agent_analytics(db)
+        usage = await analytics.get_user_agent_usage(current_user.id, days)
+        return usage
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/metrics/live")
+async def get_live_metrics(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_database_session)
+):
+    """Get real-time agent metrics"""
+    try:
+        metrics = get_realtime_metrics(db)
+        live_status = await metrics.get_live_agent_status()
+        return live_status
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/metrics/tasks/{task_id}/progress")
+async def get_task_progress_metrics(
+    task_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_database_session)
+):
+    """Get detailed progress metrics for a task"""
+    try:
+        metrics = get_realtime_metrics(db)
+        progress = await metrics.get_task_progress_metrics(task_id)
+        return progress
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/metrics/report")
+async def generate_performance_report(
+    days: int = Query(30, ge=1, le=365),
+    include_insights: bool = Query(True),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_database_session)
+):
+    """Generate comprehensive performance report"""
+    try:
+        analytics = get_agent_analytics(db)
+        report = await analytics.generate_performance_report(
+            user_id=current_user.id,
+            days=days
+        )
+        
+        if not include_insights:
+            report.pop("insights", None)
+        
+        return report
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/metrics/system")
+async def get_system_metrics(
+    days: int = Query(7, ge=1, le=30),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_database_session)
+):
+    """Get system-wide metrics (admin only)"""
+    try:
+        # Check if user has admin privileges (simplified check)
+        if not current_user.email.endswith("@codeforge.dev"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        analytics = get_agent_analytics(db)
+        metrics = await analytics.get_system_wide_metrics(days)
+        return metrics
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

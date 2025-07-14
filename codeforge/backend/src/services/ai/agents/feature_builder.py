@@ -10,10 +10,11 @@ from sqlalchemy.orm import Session
 
 from ....models.ai_agent import (
     AgentTask, AgentArtifact, ImplementationPlan,
-    AgentResult, TaskStatus
+    AgentResult, TaskStatus, CodeContext
 )
 from ....config.settings import settings
 from ...ai_service import AIProvider, TaskType, AIRequest, CodeContext as AICodeContext
+from .base_agent import BaseAgent
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ class StyleGuide:
         self.conventions = conventions
 
 
-class FeatureBuilderAgent:
+class FeatureBuilderAgent(BaseAgent):
     """
     Agent that builds complete features from requirements.
     Capable of understanding requirements, planning implementation,
@@ -40,7 +41,7 @@ class FeatureBuilderAgent:
     """
     
     def __init__(self, db: Session):
-        self.db = db
+        super().__init__(db)
         # Initialize AI service
         from ...ai_service import MultiAgentAI
         self.ai_service = MultiAgentAI()
@@ -59,9 +60,9 @@ class FeatureBuilderAgent:
             }
         }
     
-    async def execute(
+    async def _execute_impl(
         self,
-        context: Any,  # CodeContext from orchestrator
+        context: CodeContext,
         requirements: str,
         constraints: List[Any],
         task_id: str
@@ -69,42 +70,44 @@ class FeatureBuilderAgent:
         """Execute feature building task"""
         
         try:
-            # Update task status
-            task = self.db.query(AgentTask).filter(AgentTask.id == task_id).first()
-            if task:
-                task.current_step = "Analyzing requirements"
-                task.progress = 0.1
-                self.db.commit()
+            # Update progress using base class method
+            self.update_progress(0.1, "Analyzing requirements")
+            self.log("Starting feature implementation")
             
             # Analyze requirements
             tech_stack = self._determine_tech_stack(context, constraints)
+            self.log(f"Determined tech stack: {tech_stack.language} with {tech_stack.framework}")
             
             # Plan implementation
             plan = await self.plan_implementation(requirements, context, tech_stack)
             
-            if task:
-                task.current_step = "Planning implementation"
-                task.progress = 0.3
-                task.logs = task.logs or []
-                task.logs.append({
-                    "timestamp": datetime.utcnow().isoformat(),
-                    "message": f"Created implementation plan with {len(plan.steps)} steps"
-                })
-                self.db.commit()
+            self.update_progress(0.3, "Planning implementation")
+            self.log(f"Created implementation plan with {len(plan.steps)} steps")
             
             # Generate code for each step
             artifacts = []
             for i, step in enumerate(plan.steps):
-                if task:
-                    task.current_step = f"Implementing: {step['description']}"
-                    task.progress = 0.3 + (0.6 * (i + 1) / len(plan.steps))
-                    self.db.commit()
+                progress = 0.3 + (0.6 * (i + 1) / len(plan.steps))
+                self.update_progress(progress, f"Implementing: {step['description']}")
                 
                 code_files = await self.generate_code(
                     step,
                     tech_stack,
                     self._get_style_guide(tech_stack)
                 )
+                
+                # Test generated code in sandbox if possible
+                for code_file in code_files:
+                    if code_file["language"] == "python":
+                        self.log(f"Testing generated code: {code_file['path']}")
+                        test_result = await self.execute_code_safely(
+                            code_file["content"],
+                            language=code_file["language"]
+                        )
+                        if not test_result["success"]:
+                            self.log(f"Code test failed: {test_result['error']}")
+                        else:
+                            self.log("Code test passed")
                 
                 # Create artifacts for each generated file
                 for code_file in code_files:
@@ -123,16 +126,11 @@ class FeatureBuilderAgent:
                 self.db.commit()
             
             # Validate implementation
+            self.update_progress(0.95, "Validating implementation")
             validation_result = await self._validate_implementation(artifacts, requirements)
+            self.log(f"Validation completed: {len(artifacts)} files created")
             
-            if task:
-                task.current_step = "Completed"
-                task.progress = 1.0
-                task.status = TaskStatus.COMPLETED.value
-                task.completed_at = datetime.utcnow()
-                self.db.commit()
-            
-            return AgentResult(
+            return self.create_result(
                 success=True,
                 output={
                     "plan": plan.__dict__,
@@ -149,27 +147,22 @@ class FeatureBuilderAgent:
             
         except Exception as e:
             logger.error(f"Feature builder error: {str(e)}")
+            self.log(f"Feature builder failed: {str(e)}")
             
-            if task:
-                task.status = TaskStatus.FAILED.value
-                task.error_message = str(e)
-                task.completed_at = datetime.utcnow()
-                self.db.commit()
-            
-            return AgentResult(
+            return self.create_result(
                 success=False,
                 output={"error": str(e)},
                 artifacts=[],
                 metrics={"error": str(e)}
             )
     
-    async def execute_action(self, action: str, context: Dict, task_id: str) -> Any:
+    async def _execute_action_impl(self, action: str, context: Dict, task_id: str) -> AgentResult:
         """Execute specific action for workflow"""
         
         if action == "plan_and_implement":
             requirements = context.get("requirements", "")
             code_context = context.get("original_context")
-            return await self.execute(code_context, requirements, [], task_id)
+            return await self._execute_impl(code_context, requirements, [], task_id)
         
         else:
             raise ValueError(f"Unknown action: {action}")
