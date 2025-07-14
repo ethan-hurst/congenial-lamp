@@ -10,16 +10,12 @@ PATH = "${VIRTUAL_ENV}/bin:${PATH}"
 PYTHONPATH = "${REPL_HOME}"
 
 [[ports]]
-localPort = 3000
-externalPort = 3000
-
-[[ports]]
 localPort = 5000
-externalPort = 5000
+externalPort = 80
 
 [[ports]]
 localPort = 8000
-externalPort = 80
+externalPort = 8000
 
 [gitHubImport]
 requiredFiles = [".replit", "replit.nix"]
