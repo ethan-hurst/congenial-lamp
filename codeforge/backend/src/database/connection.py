@@ -56,7 +56,7 @@ def create_tables():
     Create all database tables
     """
     # Import all models to ensure they're registered
-    from ..models import user, project, container, deployment, collaboration
+    from ..models import user, project, container, deployment, collaboration, database
     
     Base.metadata.create_all(bind=engine)
 

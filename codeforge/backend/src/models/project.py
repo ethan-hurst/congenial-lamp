@@ -111,6 +111,7 @@ class Project(Base):
     containers = relationship("ContainerSession", back_populates="project")
     deployments = relationship("Deployment", back_populates="project")
     snapshots = relationship("ProjectSnapshot", back_populates="project")
+    databases = relationship("DatabaseInstance", back_populates="project")
     
     # Indexes
     __table_args__ = (

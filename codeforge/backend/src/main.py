@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 import uvicorn
 
 from .config.settings import settings
-from .api.v1 import auth, containers, ai, clone, collaboration, debug, deployment, performance, projects, websocket
+from .api.v1 import auth, containers, ai, clone, collaboration, debug, deployment, performance, projects, websocket, database
 
 # Create FastAPI app
 app = FastAPI(
@@ -45,6 +45,7 @@ app.include_router(debug.router, prefix="/api/v1")
 app.include_router(deployment.router, prefix="/api/v1")
 app.include_router(performance.router, prefix="/api/v1")
 app.include_router(projects.router, prefix="/api/v1")
+app.include_router(database.router, prefix="/api/v1")
 
 # Include WebSocket routes
 app.include_router(websocket.router, prefix="/api/v1/ws")

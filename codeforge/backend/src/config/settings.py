@@ -89,6 +89,14 @@ class Settings(BaseSettings):
     MAX_STORAGE_GB: int = Field(default=1000, env="MAX_STORAGE_GB")
     MAX_CONTAINERS_PER_USER: int = Field(default=50, env="MAX_CONTAINERS_PER_USER")
     
+    # Database Provisioning
+    MAX_DATABASES_PER_PROJECT: int = Field(default=5, env="MAX_DATABASES_PER_PROJECT")
+    DATABASE_BACKUP_RETENTION_DAYS: int = Field(default=7, env="DATABASE_BACKUP_RETENTION_DAYS")
+    DATABASE_BRANCH_LIMIT: int = Field(default=10, env="DATABASE_BRANCH_LIMIT")
+    ENABLE_DATABASE_BRANCHING: bool = Field(default=True, env="ENABLE_DATABASE_BRANCHING")
+    DATABASE_PROVISION_TIMEOUT: int = Field(default=300, env="DATABASE_PROVISION_TIMEOUT")
+    ENCRYPTION_KEY: str = Field(default=None, env="ENCRYPTION_KEY")
+    
     # Monitoring
     PROMETHEUS_PORT: int = Field(default=9090, env="PROMETHEUS_PORT")
     GRAFANA_PORT: int = Field(default=3000, env="GRAFANA_PORT")
