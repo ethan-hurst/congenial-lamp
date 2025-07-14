@@ -2,7 +2,7 @@
   deps = [
     pkgs.python311
     pkgs.python311Packages.pip
-    pkgs.nodejs_18
+    pkgs.nodejs-18_x
     pkgs.postgresql_15
     pkgs.redis
     pkgs.docker

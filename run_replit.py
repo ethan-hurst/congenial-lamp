@@ -54,8 +54,8 @@ def setup_python_env():
     pip_path = venv_path / "bin" / "pip"
     python_path = venv_path / "bin" / "python"
     
-    # Upgrade pip
-    run_command(f"{pip_path} install --upgrade pip")
+    # Upgrade pip without using --user flag
+    run_command(f"{pip_path} install --upgrade pip", check=False)
     
     # Install backend dependencies
     backend_path = Path("codeforge/backend")
@@ -64,8 +64,12 @@ def setup_python_env():
         req_file = backend_path / "requirements.txt"
     
     print("📦 Installing Python dependencies...")
-    # Remove --user flag if present in pip install
-    run_command(f"{pip_path} install --no-user -r {req_file}")
+    # Use pip without --user flag inside virtual environment
+    result = run_command(f"{pip_path} install -r {req_file}", check=False)
+    if result and result.returncode != 0:
+        # If it fails, try with --force-reinstall
+        print("Retrying with --force-reinstall...")
+        run_command(f"{pip_path} install --force-reinstall -r {req_file}", check=False)
     
     return str(python_path)
 
