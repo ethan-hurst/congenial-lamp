@@ -64,7 +64,8 @@ def setup_python_env():
         req_file = backend_path / "requirements.txt"
     
     print("📦 Installing Python dependencies...")
-    run_command(f"{pip_path} install -r {req_file}")
+    # Remove --user flag if present in pip install
+    run_command(f"{pip_path} install --no-user -r {req_file}")
     
     return str(python_path)
 
@@ -148,7 +149,7 @@ def start_services(python_path):
     
     # Start frontend
     frontend_path = Path("codeforge/frontend")
-    frontend_cmd = "npm start"
+    frontend_cmd = "npm run dev"
     frontend_proc = subprocess.Popen(frontend_cmd, shell=True, cwd=str(frontend_path), env={**os.environ, "PORT": "3000"})
     
     repl_slug = os.environ.get('REPL_SLUG', 'codeforge')

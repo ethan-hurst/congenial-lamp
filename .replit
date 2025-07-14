@@ -1,14 +1,13 @@
 run = "python3 run_replit.py"
 entrypoint = "run_replit.py"
-modules = ["python-3.11", "nodejs-18", "web"]
-hidden = [".pythonlibs", "venv_linux", ".git", "node_modules", "__pycache__"]
 
 [nix]
-channel = "stable-24_05"
+channel = "stable-22_11"
 
 [env]
 VIRTUAL_ENV = "/home/runner/${REPL_SLUG}/venv_linux"
 PATH = "${VIRTUAL_ENV}/bin:${PATH}"
+PYTHONPATH = "${REPL_HOME}"
 
 [[ports]]
 localPort = 8000
@@ -18,5 +17,5 @@ externalPort = 80
 localPort = 3000
 externalPort = 3000
 
-[deployment]
-run = ["python3", "run_replit.py"]
+[gitHubImport]
+requiredFiles = [".replit", "replit.nix"]
