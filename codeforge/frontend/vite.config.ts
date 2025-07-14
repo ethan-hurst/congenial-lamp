@@ -11,7 +11,13 @@ export default defineConfig({
       port: 5000
     },
     strictPort: false,
-    cors: true
+    cors: true,
+    // Allow all Replit hosts
+    allowedHosts: [
+      '.replit.dev',
+      '.repl.co',
+      'localhost'
+    ]
   },
   preview: {
     host: '0.0.0.0',
