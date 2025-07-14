@@ -1,0 +1,17 @@
+entrypoint = "run_codeforge.sh"
+modules = ["python-3.11", "nodejs-18", "web"]
+
+[nix]
+channel = "stable-24_05"
+
+[[ports]]
+localPort = 8000
+externalPort = 8000
+
+[[ports]]
+localPort = 3000
+externalPort = 3000
+
+[deployment]
+run = ["sh", "-c", "./run_codeforge.sh"]
+deploymentTarget = "cloudrun"
