@@ -4,6 +4,7 @@ modules = ["python-3.12", "nodejs-20", "web", "bash"]
 channel = "stable-24_05"
 
 [workflows]
+runButton = "Full Stack"
 
 [[workflows.workflow]]
 name = "Run Backend"
@@ -18,6 +19,19 @@ args = "cd codeforge/backend && pip install -r requirements.txt && python -m uvi
 name = "Run Frontend"
 author = 40017536
 mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd codeforge/frontend && npm install && npm run dev -- --host 0.0.0.0 --port 5000"
+
+[[workflows.workflow]]
+name = "Full Stack"
+author = 40017536
+mode = "parallel"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd codeforge/backend && pip install -r requirements.txt && python -m uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
