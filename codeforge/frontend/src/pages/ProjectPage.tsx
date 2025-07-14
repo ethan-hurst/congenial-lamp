@@ -10,11 +10,13 @@ import {
   Storage as DatabaseIcon,
   Settings as SettingsIcon,
   Psychology as AIIcon,
+  CloudQueue as InfrastructureIcon,
 } from '@mui/icons-material';
 
 import { Navbar } from '../components/Layout/Navbar';
 import { DatabasePanel } from '../components/Database';
 import { AgentPanel } from '../components/AI/AgentPanel';
+import { InfrastructurePanel } from '../components/Infrastructure';
 import { api } from '../services/api';
 
 interface TabPanelProps {
@@ -97,11 +99,18 @@ export const ProjectPage: React.FC = () => {
                 aria-controls="project-tabpanel-2"
               />
               <Tab
-                icon={<SettingsIcon />}
-                label="Settings"
+                icon={<InfrastructureIcon />}
+                label="Infrastructure"
                 iconPosition="start"
                 id="project-tab-3"
                 aria-controls="project-tabpanel-3"
+              />
+              <Tab
+                icon={<SettingsIcon />}
+                label="Settings"
+                iconPosition="start"
+                id="project-tab-4"
+                aria-controls="project-tabpanel-4"
               />
             </Tabs>
           </Box>
@@ -124,6 +133,10 @@ export const ProjectPage: React.FC = () => {
           </TabPanel>
 
           <TabPanel value={tabValue} index={3}>
+            {projectId && <InfrastructurePanel projectId={projectId} />}
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={4}>
             <Box p={3}>
               <Typography variant="h6" gutterBottom>Project Settings</Typography>
               <Typography variant="body1" color="textSecondary">

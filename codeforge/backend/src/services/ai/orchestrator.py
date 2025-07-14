@@ -4,9 +4,10 @@ Agent Orchestrator - Coordinates all AI agents and manages workflows
 import asyncio
 import uuid
 from datetime import datetime
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, AsyncGenerator
 from enum import Enum
 import logging
+import json
 
 from sqlalchemy.orm import Session
 
@@ -67,6 +68,10 @@ class AgentOrchestrator:
         self.task_queue = asyncio.Queue()
         self.active_tasks: Dict[str, AgentTask] = {}
         self.task_results: Dict[str, AgentResult] = {}
+        
+        # Progress streaming
+        self.progress_streams: Dict[str, List[Dict]] = {}
+        self.task_logs: Dict[str, List[str]] = {}
         
         # Workflow templates
         self.workflow_templates = {
@@ -134,20 +139,31 @@ class AgentOrchestrator:
             task.started_at = datetime.utcnow()
             self.db.commit()
             
+            # Add initial progress update
+            self.add_progress_update(task.id, 0.0, "Initializing task")
+            self.add_log_entry(task.id, f"Starting {task_type.value} task")
+            
             # Get the appropriate agent
             agent = self.agents.get(task_type)
             if not agent:
                 raise ValueError(f"No agent found for type: {task_type}")
+            
+            self.add_progress_update(task.id, 0.1, "Agent initialized")
             
             # Execute the task
             result = await agent.execute(
                 context=context,
                 requirements=requirements,
                 constraints=constraints,
-                task_id=task.id
+                task_id=task.id,
+                progress_callback=lambda p, m: self.add_progress_update(task.id, p, m),
+                log_callback=lambda m: self.add_log_entry(task.id, m)
             )
             
             # Update task with results
+            self.add_progress_update(task.id, 1.0, "Task completed successfully")
+            self.add_log_entry(task.id, "Task completed successfully")
+            
             task.status = TaskStatus.COMPLETED.value
             task.completed_at = datetime.utcnow()
             task.execution_time_ms = int(
@@ -162,6 +178,9 @@ class AgentOrchestrator:
             
         except Exception as e:
             # Handle task failure
+            self.add_progress_update(task.id, 0.0, f"Task failed: {str(e)}")
+            self.add_log_entry(task.id, f"Error: {str(e)}")
+            
             task.status = TaskStatus.FAILED.value
             task.error_message = str(e)
             task.completed_at = datetime.utcnow()
@@ -409,3 +428,71 @@ class AgentOrchestrator:
             "complexity": estimate.get("complexity", "medium"),
             "confidence": estimate.get("confidence", 0.7)
         }
+    
+    def add_progress_update(self, task_id: str, progress: float, message: str, details: Optional[Dict] = None):
+        """Add a progress update for real-time streaming"""
+        if task_id not in self.progress_streams:
+            self.progress_streams[task_id] = []
+        
+        update = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "progress": progress,
+            "message": message,
+            "details": details or {}
+        }
+        
+        self.progress_streams[task_id].append(update)
+        
+        # Update task progress in database
+        task = self.db.query(AgentTask).filter(AgentTask.id == task_id).first()
+        if task:
+            task.progress = progress
+            task.current_step = message
+            self.db.commit()
+    
+    def add_log_entry(self, task_id: str, log_message: str):
+        """Add a log entry for a task"""
+        if task_id not in self.task_logs:
+            self.task_logs[task_id] = []
+        
+        log_entry = f"[{datetime.utcnow().isoformat()}] {log_message}"
+        self.task_logs[task_id].append(log_entry)
+        
+        # Update task logs in database
+        task = self.db.query(AgentTask).filter(AgentTask.id == task_id).first()
+        if not task:
+            # Check if it's a workflow
+            task = self.db.query(AgentWorkflow).filter(AgentWorkflow.id == task_id).first()
+        
+        if task:
+            if not hasattr(task, 'logs') or task.logs is None:
+                task.logs = []
+            task.logs.append(log_entry)
+            self.db.commit()
+    
+    async def get_progress_stream(self, task_id: str) -> AsyncGenerator[str, None]:
+        """Stream progress updates for a task"""
+        try:
+            while True:
+                # Get latest progress updates
+                updates = self.progress_streams.get(task_id, [])
+                if updates:
+                    for update in updates[-5:]:  # Send last 5 updates
+                        yield f"data: {json.dumps(update)}\n\n"
+                    
+                    # Clear sent updates to avoid duplication
+                    self.progress_streams[task_id] = []
+                
+                # Check if task is completed
+                status = await self.get_task_status(task_id)
+                if status.get("status") in ["completed", "failed", "cancelled"]:
+                    break
+                
+                await asyncio.sleep(1)  # Check every second
+                
+        except Exception as e:
+            error_update = {
+                "timestamp": datetime.utcnow().isoformat(),
+                "error": str(e)
+            }
+            yield f"data: {json.dumps(error_update)}\n\n"
